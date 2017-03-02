@@ -4,10 +4,30 @@ containing links and course names. Add a new one in case the website ever change
 """
 
 from bs4 import BeautifulSoup
+from course import Course
 
-def filter_early_ss17(html):
+def course_links_early_ss17(html):
     soup = BeautifulSoup(html)
     a_elems = soup.select('dl.bs_menu > dd a')
     links = map(lambda l: l.attrs['href'], a_elems) 
     names = map(lambda l: l.text, a_elems)
     return list(links), list(names)
+
+"""
+Extract specialisations of a course from its page
+"""
+def course_filter_detail_early_ss17(html):
+    soup = BeautifulSoup(html)
+    name = soup.find('div', class_='bs_head').text
+    rows = soup.select('table.bs_kurse tbody tr')
+    courses = []
+    for row in rows:
+        try:
+            id = row.find('input').attrs['name']
+        except AttributeError:
+            continue
+        else:
+            course_name = name + ' ' + row.find('td', class_='bs_sdet').text
+            time = row.find('td', class_='bs_stag').text + ' ' + row.find('td', class_='bs_szeit').text
+            courses.append(Course(id, course_name, time=time))
+    return courses
