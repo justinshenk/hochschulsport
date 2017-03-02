@@ -1,10 +1,11 @@
 Kursauswahl:
 ---------------------------
-- Scraping von https://buchung.zfh.uni-osnabrueck.de/angebote/aktueller_zeitraum/index.html
-- dem Link zum Kurs folgen, HTML nach BS_Code und Buttons mit name="BS_kursid"
+[ ] Scraping von https://buchung.zfh.uni-osnabrueck.de/angebote/aktueller_zeitraum/index.html
+[ ] Save to database
+[ ] dem Link zum Kurs folgen, HTML nach BS_Code und Buttons mit name="BS_kursid"
   durchsuchen
-- Objekt mit diesen Daten für jeden Kurs anlegen
-- POST-Requests an /cgi/anmeldung.fcgi senden, mit diesem Inhalt:
+[ ] Objekt mit diesen Daten für jeden Kurs anlegen
+[ ] POST-Requests an /cgi/anmeldung.fcgi senden, mit diesem Inhalt:
 
    POST-Heders
    -------------------------------------
@@ -27,7 +28,7 @@ Kursauswahl:
    -------------------------------------
    BS_Code=${bscode}&BS_Kursid_${kursid}=(buchen|Warteliste)
 
-- input Tag mit name="fid" extrahieren
+[ ] input Tag mit name="fid" extrahieren
    POST-Heders
    -------------------------------------
    POST /cgi/anmeldung.fcgi HTTP/1.1
