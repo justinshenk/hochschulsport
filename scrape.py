@@ -113,24 +113,24 @@ def main():
             help='Retries for obtaining individual courses')
     parser.add_argument('--timeout', type=int, choices=range(5,50),
             default=20, required=False, help='Timeout for requests.')
+    parser.add_argument('--database', type=str, default='courses.pickle',
+            required=False, help='File to store courses in.')
+    parser.add_argument('--update', action='store_true', default=False,
+            required=False, help='Update the database from web')
+    parser.add_argument('--list', action='store_true', default=False,
+            required=False, help='Print list of courses')
     args = parser.parse_args()
 
-    # parser.add_argument(name='first_name', type=str, required=False, help='Your\
-    #         first name for registration.')
-    # parser.add_argument(name='last_name', type=str, required=False, help='Your\
-    #         last name for registration.')
-    # parser.add_argument(name='email', type=str, required=False, help='Your\
-    #         (university) email.')
-    # parser.add_argument(name='mat_nr', type=int, required=False, help='Your\
-    #         matriculation number.')
     s = Scraper(args.index_url, course_links_early_ss17,
             course_filter_detail_early_ss17, fname=args.outfile)
-    # s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
-    # s.update_courses()
-    # s.save_courses()
-    courses = s.courses
-    for c in courses:
-        print(c)
+    if args.update:
+        s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
+        s.save_courses()
+
+    if args.list:
+        courses = s.courses
+        for c in courses:
+            print(c)
 
 if __name__ == "__main__":
     main()
