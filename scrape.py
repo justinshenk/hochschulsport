@@ -34,7 +34,6 @@ class Scraper(object):
             raise ValueError('Cannot scrape without URL')
         if not course_link_filter:
             raise ValueError('Cannot scrape without course link filter')
-        if not course_link_filter:
             raise ValueError('Cannot scrape without course detail filter')
         self._course_list_url = course_list_url
         self._course_link_filter = course_link_filter
@@ -101,7 +100,7 @@ def validate_args(args, config):
     """
     pass
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Scrape the Hochschulsport\
             website. The url is read from the zfh.conf or specified by\
             parameter.')
@@ -132,3 +131,6 @@ if __name__ == "__main__":
     courses = s.courses
     for c in courses:
         print(c)
+
+if __name__ == "__main__":
+    main()
