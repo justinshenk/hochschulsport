@@ -5,12 +5,13 @@ Module for scraping the Hochschulsport website
 from bs4 import BeautifulSoup
 from urllib import parse
 from pickle import dump, load
-from sys import stderr
 from os.path import exists
 from requests_futures.sessions import FuturesSession
 import requests
 from requests.adapters import HTTPAdapter
 import argparse
+import configparser
+import sys
 
 from filters import course_links_early_ss17, course_filter_detail_early_ss17
 from course import Course
@@ -44,10 +45,11 @@ class Scraper(object):
     @property
     def courses(self):
         if not self._courses:
-            stderr.write(('Courses not loaded, '
-                'attempting to read from {}...\n').format(self._fname))
+            print(('Courses not loaded, '
+                'attempting to read from {}...').format(self._fname),
+                file=sys.stderr)
             if not exists(self._fname):
-                stderr.write('File not found, downloading...\n')
+                print('File not found, downloading...', file=sys.stderr)
                 self.update_courses()
             else:
                 self.load_courses()
@@ -56,12 +58,18 @@ class Scraper(object):
     def save_courses(self):
         if not self._courses:
             raise RuntimeError('No courses loaded. Call update_courses() first.')
-        with open(self._fname, mode='wb') as file:
-            dump(self._courses, file)
+        try:
+            with open(self._fname, mode='wb') as file:
+                dump(self._courses, file)
+        except IOError:
+            raise RuntimeError('Could not write to {}'.format(self._fname))
 
     def load_courses(self):
-        with open(self._fname, mode='rb') as file:
-            self._courses = load(file)
+        try:
+            with open(self._fname, mode='rb') as file:
+                self._courses = load(file)
+        except IOError:
+            raise RuntimeError('Could not read from {}'.format(self._fname))
 
     def update_courses(self, max_retries=5, timeout=20):
         """Extract courses from the index page.
@@ -98,20 +106,29 @@ def validate_args(args, config):
     :config: ConfigParser() object
     :returns: Bool
     """
-    pass
+    if args.update:
+        if not args.index_url:
+            try:
+                args.index_url = config['global']['index_url']
+            except KeyError:
+                return (False, 'Error. Index url for update neither in params nor configuration file.')
+    return (True, 'Arguments OK.')
+    
 
 def main():
-    parser = argparse.ArgumentParser(description='Scrape the Hochschulsport\
-            website. The url is read from the zfh.conf or specified by\
-            parameter.')
+    parser = argparse.ArgumentParser(description=('Scrape the Hochschulsport'
+        'website. The url is read from the zfh.conf or specified by'
+            'parameter.'))
     parser.add_argument('--outfile', type=str, default='courses.pickle',
             required=False, help='File to save the course data to.')
-    parser.add_argument('--index_url', type=str, required=False, 
+    parser.add_argument('--index_url', type=str, required=False, default=None,
             help='The web url listing all available courses.')
     parser.add_argument('--max_retries', type=int, choices=range(1,50),
+            metavar='[1-50]',
             default=5, required=False, 
             help='Retries for obtaining individual courses')
     parser.add_argument('--timeout', type=int, choices=range(5,50),
+            metavar='[5-50]',
             default=20, required=False, help='Timeout for requests.')
     parser.add_argument('--database', type=str, default='courses.pickle',
             required=False, help='File to store courses in.')
@@ -121,11 +138,23 @@ def main():
             required=False, help='Print list of courses')
     args = parser.parse_args()
 
+    config = configparser.ConfigParser()
+    config.read('zfh.conf')
+
+    args_valid, msg = validate_args(args, config)
+    if not args_valid:
+        print(msg)
+        exit(1)
+
     s = Scraper(args.index_url, course_links_early_ss17,
             course_filter_detail_early_ss17, fname=args.outfile)
     if args.update:
         s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
-        s.save_courses()
+        try:
+            s.save_courses()
+        except RuntimeError as e:
+            print(e.message, file=sys.stderr)
+            exit(2)
 
     if args.list:
         courses = s.courses
