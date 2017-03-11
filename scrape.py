@@ -4,7 +4,6 @@ Module for scraping the Hochschulsport website
 """
 from bs4 import BeautifulSoup
 from urllib import parse
-from pickle import dump, load
 from os.path import exists
 from requests_futures.sessions import FuturesSession
 import requests
@@ -12,9 +11,10 @@ from requests.adapters import HTTPAdapter
 import argparse
 import configparser
 import sys
+import os
 
 from filters import course_links_early_ss17, course_filter_detail_early_ss17
-from course import Course
+from course import Course, CourseManager
 
 class Scraper(object):
 
@@ -35,6 +35,7 @@ class Scraper(object):
             raise ValueError('Cannot scrape without URL')
         if not course_link_filter:
             raise ValueError('Cannot scrape without course link filter')
+        if not course_filter:
             raise ValueError('Cannot scrape without course detail filter')
         self._course_list_url = course_list_url
         self._course_link_filter = course_link_filter
@@ -58,18 +59,11 @@ class Scraper(object):
     def save_courses(self):
         if not self._courses:
             raise RuntimeError('No courses loaded. Call update_courses() first.')
-        try:
-            with open(self._fname, mode='wb') as file:
-                dump(self._courses, file)
-        except IOError:
-            raise RuntimeError('Could not write to {}'.format(self._fname))
+        else:
+            CourseManager.save_all(self._courses, self._fname)
 
     def load_courses(self):
-        try:
-            with open(self._fname, mode='rb') as file:
-                self._courses = load(file)
-        except IOError:
-            raise RuntimeError('Could not read from {}'.format(self._fname))
+        self._courses = CourseManager.load_all(self._fname)
 
     def update_courses(self, max_retries=5, timeout=20):
         """Extract courses from the index page.
@@ -106,7 +100,7 @@ def validate_args(args, config):
     :config: ConfigParser() object
     :returns: Bool
     """
-    if args.update:
+    if args.update or not os.path.exists(args.outfile):
         if not args.index_url:
             try:
                 args.index_url = config['global']['index_url']
@@ -146,18 +140,20 @@ def main():
         print(msg)
         exit(1)
 
-    s = Scraper(args.index_url, course_links_early_ss17,
-            course_filter_detail_early_ss17, fname=args.outfile)
-    if args.update:
+    if args.update or not os.path.exists(args.outfile):
+        s = Scraper(args.index_url, course_links_early_ss17,
+                course_filter_detail_early_ss17, fname=args.outfile)
         s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
+        courses = s.courses
         try:
             s.save_courses()
         except RuntimeError as e:
             print(e.message, file=sys.stderr)
             exit(2)
+    else:
+        courses = CourseManager.load_all(args.outfile)
 
     if args.list:
-        courses = s.courses
         for c in courses:
             print(c)
 
