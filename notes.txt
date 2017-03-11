@@ -2,9 +2,12 @@ Kursauswahl:
 ---------------------------
 [x] Scraping von https://buchung.zfh.uni-osnabrueck.de/angebote/aktueller_zeitraum/index.html
 [x] Save to database
-[ ] dem Link zum Kurs folgen, HTML nach BS_Code und Buttons mit name="BS_kursid"
+[x] dem Link zum Kurs folgen, HTML nach BS_Code und Buttons mit name="BS_kursid"
   durchsuchen (BS_Code scheint irrelevant zu sein)
 [x] Objekt mit diesen Daten für jeden Kurs anlegen
+[ ] CLI zur Fuzzy-Auswahl der Kurse
+
+
 [ ] POST-Requests an /cgi/anmeldung.fcgi senden, mit diesem Inhalt:
 
    POST-Heders
