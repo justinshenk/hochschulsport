@@ -1,3 +1,5 @@
+from pickle import load, dump
+
 class Course(object):
 
     def __init__(self, id, name, url=None, time=None, place=None):
@@ -29,3 +31,21 @@ class Course(object):
     @property
     def place(self):
         return self.__place
+    
+class CourseManager(object):
+
+    @classmethod
+    def load_all(cls, fname):
+        try:
+            with open(fname, mode='rb') as file:
+                return load(file)
+        except IOError:
+            raise RuntimeError('Could not read from {}'.format(fname))
+
+    @classmethod
+    def save_all(cls, courses, fname):
+        try:
+            with open(fname, mode='wb') as file:
+                dump(courses, file)
+        except IOError:
+            raise RuntimeError('Could not write to {}'.format(fname))
