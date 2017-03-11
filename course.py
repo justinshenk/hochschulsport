@@ -8,7 +8,7 @@ class Course(object):
         self.__place = place
 
     def __str__(self):
-        return "{name}: {time}".format(name=self.name, time=self.time)
+        return "{id} {name}: {time}".format(id=self.id, name=self.name, time=self.time)
 
     @property
     def id(self):
