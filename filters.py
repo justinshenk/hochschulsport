@@ -6,6 +6,7 @@ containing links and course names. Add a new one in case the website ever change
 from bs4 import BeautifulSoup
 from course import Course
 import re
+import sys
 
 def course_links_early_ss17(html):
     soup = BeautifulSoup(html)
@@ -26,7 +27,7 @@ def course_filter_detail_early_ss17(html):
         course_row = row.find('input')
         if not course_row or not course_row.attrs['value'] in ['Warteliste', 'buchen',
                 'Vormerkliste']:
-            import sys; sys.stderr.write('Skipping {}...\n'.format(name))
+            print('Skipping {}...\n'.format(name), file=sys.stderr)
             continue
         else:
             id = int(re.match(r'BS_Kursid_(\d+)', course_row.attrs['name']).group(1))
