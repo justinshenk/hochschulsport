@@ -27,7 +27,7 @@ def course_filter_detail_early_ss17(html):
         course_row = row.find('input')
         if not course_row or not course_row.attrs['value'] in ['Warteliste', 'buchen',
                 'Vormerkliste']:
-            print('Skipping {}...\n'.format(name), file=sys.stderr)
+            print('Skipping {}...'.format(name), file=sys.stderr)
             continue
         else:
             id = int(re.match(r'BS_Kursid_(\d+)', course_row.attrs['name']).group(1))
