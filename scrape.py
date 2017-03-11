@@ -100,7 +100,7 @@ def validate_args(args, config):
     :config: ConfigParser() object
     :returns: Bool
     """
-    if args.update or not os.path.exists(args.outfile):
+    if args.update or not os.path.exists(args.database):
         if not args.index_url:
             try:
                 args.index_url = config['global']['index_url']
@@ -113,8 +113,6 @@ def main():
     parser = argparse.ArgumentParser(description=('Scrape the Hochschulsport'
         'website. The url is read from the zfh.conf or specified by'
             'parameter.'))
-    parser.add_argument('--outfile', type=str, default='courses.pickle',
-            required=False, help='File to save the course data to.')
     parser.add_argument('--index_url', type=str, required=False, default=None,
             help='The web url listing all available courses.')
     parser.add_argument('--max_retries', type=int, choices=range(1,50),
@@ -140,9 +138,10 @@ def main():
         print(msg)
         exit(1)
 
-    if args.update or not os.path.exists(args.outfile):
+    # in these cases, we need the url
+    if args.update or not os.path.exists(args.database):
         s = Scraper(args.index_url, course_links_early_ss17,
-                course_filter_detail_early_ss17, fname=args.outfile)
+                course_filter_detail_early_ss17, fname=args.database)
         s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
         courses = s.courses
         try:
@@ -151,7 +150,7 @@ def main():
             print(e.message, file=sys.stderr)
             exit(2)
     else:
-        courses = CourseManager.load_all(args.outfile)
+        courses = CourseManager.load_all(args.database)
 
     if args.list:
         for c in courses:
