@@ -55,7 +55,7 @@ class Scraper(object):
             else:
                 self.load_courses()
         return self._courses
-        
+ 
     def save_courses(self):
         if not self._courses:
             raise RuntimeError('No courses loaded. Call update_courses() first.')
@@ -86,10 +86,10 @@ class Scraper(object):
         futures = []
         for i, l in enumerate(links):
             print('Processing {} ({} of {})'.format(l, i+1, len(links)))
-            futures.append(session.get(l, timeout=timeout))
+            futures.append((l, session.get(l, timeout=timeout)))
 
         self._courses = [course for lst in
-                (self._course_filter(f.result().text) for f in futures if not
+                (self._course_filter(f.result().text, page_url=l) for l, f in futures if not
                     f.exception()) for course in lst]
 
 def validate_args(args, config):
@@ -107,7 +107,7 @@ def validate_args(args, config):
             except KeyError:
                 return (False, 'Error. Index url for update neither in params nor configuration file.')
     return (True, 'Arguments OK.')
-    
+
 
 def main():
     parser = argparse.ArgumentParser(description=('Scrape the Hochschulsport'
@@ -117,7 +117,7 @@ def main():
             help='The web url listing all available courses.')
     parser.add_argument('--max_retries', type=int, choices=range(1,50),
             metavar='[1-50]',
-            default=5, required=False, 
+            default=5, required=False,
             help='Retries for obtaining individual courses')
     parser.add_argument('--timeout', type=int, choices=range(5,50),
             metavar='[5-50]',

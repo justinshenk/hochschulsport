@@ -15,7 +15,7 @@ def course_links_early_ss17(html):
     names = map(lambda l: l.text, a_elems)
     return list(links), list(names)
 
-def course_filter_detail_early_ss17(html):
+def course_filter_detail_early_ss17(html, page_url):
     """
     Extract specialisations of a course from its page
     """
@@ -34,7 +34,8 @@ def course_filter_detail_early_ss17(html):
             id = int(re.match(r'BS_Kursid_(\d+)', course_row.attrs['name']).group(1))
             course_name = name + ' ' + row.find('td', class_='bs_sdet').text
             time = row.find('td', class_='bs_stag').text + ' ' + row.find('td', class_='bs_szeit').text
-            courses.append(Course(id, course_name, time=time, kind=kind))
+            courses.append(Course(id, course_name, time=time, kind=kind,
+                url=page_url))
     return courses
 
 def extract_fid(html):
@@ -53,7 +54,7 @@ def extract_price(html):
         return None
     else:
         return price_input[0].attrs['value']
-    
+
 def extract_formdata(html):
     """
     Get the hidden _formdata value from the confirmation (not the initial signup) page
