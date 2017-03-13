@@ -7,7 +7,7 @@ import requests
 import configparser
 
 from course import CourseManager
-from filters import extract_fid
+from filters import extract_fid, extract_price, extract_formdata
 
 def signup(course, post_url, user_data):
     if course.kind != 'buchen':
@@ -15,7 +15,6 @@ def signup(course, post_url, user_data):
     session = requests.Session()
     # do first request to get secret form values
     post_headers = {
-            # 'Content-Length': ${Content-Length},
             'Cache-Control': 'max-age=0',
             'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
             'Upgrade-Insecure-Requests': '1',
@@ -33,8 +32,60 @@ def signup(course, post_url, user_data):
     response1 = session.post(post_url, headers=post_headers, data=post_data,
             allow_redirects=False)
     fid = extract_fid(response1.text)
-    import ipdb; ipdb.set_trace()
+    
+    post_headers = {
+            'Host': 'buchung.zfh.uni-osnabrueck.de',
+            'Connection': 'keep-alive',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'DNT': '1',
+            'Referer': course.url,
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en,en-US;q=0.8,de;q=0.6',
+            }
+    if course.kind == 'buchen':
+        post_data = {
+                'fid': fid,
+                'sex': user_data['gender'],
+                'vorname': user_data['first_name'],
+                'name': user_data['last_name'],
+                'strasse': user_data['address'],
+                'ort': user_data['zipcode'] + ' ' + user_data['place'],
+                'statusorig': 'Stud-UOS',
+                'matnr': user_data['matnr'],
+                'email': user_data['email'],
+                'iban': user_data['iban'],
+                'kontoinh': 'nur+ändern,+falls+nicht+mit+Teilnehmer/in+identisch',
+                'tnbed': '1',
+                'tnbed2': '1'
+                }
+    elif course.kind == 'Warteliste':
+        post_data = {
+                'fid': fid,
+                'Email': user_data['email']
+                }
 
+    response2 = session.post(post_url, headers=post_headers, data=post_data,
+            allow_redirects=False)
+    price = extract_price(response2.text)
+    formdata = extract_formdata(response2.text)
+    post_data.update({
+        'Phase': 'final',
+        'preis_anz': price,
+        '_formdata': formdata
+        })
+
+    post_headers.update({ 'Referer':
+        'https://buchung.zfh.uni-osnabrueck.de/cgi/anmeldung.fcgi' })
+
+    response3 = session.post(post_url, headers=post_headers, data=post_data,
+            allow_redirects=False)
+    import ipdb; ipdb.set_trace()
 
 def filter_courses(courses, query=None, id=None, fuzzy=False, num_results=10):
 
