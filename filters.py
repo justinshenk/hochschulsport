@@ -43,3 +43,24 @@ def extract_fid(html):
         return None
     else:
         return fid_input[0].attrs['value']
+
+def extract_price(html):
+    """
+    Get the price from the confirmation (not the initial signup) page
+    """
+    price_input = BeautifulSoup(html).select('input[name="preis_anz"]')
+    if not price_input:
+        return None
+    else:
+        return price_input[0].attrs['value']
+    
+def extract_formdata(html):
+    """
+    Get the hidden _formdata value from the confirmation (not the initial signup) page
+    """
+    formdata_input = BeautifulSoup(html).select('input[name="_formdata"]')
+    if not formdata_input:
+        return None
+    else:
+        return formdata_input[0].attrs['value']
+    
