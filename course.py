@@ -2,35 +2,40 @@ from pickle import load, dump
 
 class Course(object):
 
-    def __init__(self, id, name, url=None, time=None, place=None):
-        self.__id = id
-        self.__name = name
-        self.__url = url
-        self.__time = time
-        self.__place = place
+    def __init__(self, id, name, url=None, time=None, place=None, kind='buchen'):
+        self._id = id
+        self._name = name
+        self._url = url
+        self._time = time
+        self._place = place
+        self._kind = kind
 
     def __str__(self):
         return "{id} {name}: {time}".format(id=self.id, name=self.name, time=self.time)
 
     @property
     def id(self):
-        return self.__id
+        return self._id
 
     @property
     def url(self):
-        return self.__url
+        return self._url
 
     @property
     def name(self):
-        return self.__name
+        return self._name
 
     @property
     def time(self):
-        return self.__time
+        return self._time
     
     @property
     def place(self):
-        return self.__place
+        return self._place
+
+    @property
+    def kind(self):
+        return self._kind
     
 class CourseManager(object):
 
