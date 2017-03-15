@@ -31,11 +31,12 @@ def course_filter_detail_early_ss17(html, page_url):
             continue
         else:
             kind = course_row.attrs['value']
+            bscode = extract_bscode(html)
             id = int(re.match(r'BS_Kursid_(\d+)', course_row.attrs['name']).group(1))
             course_name = name + ' ' + row.find('td', class_='bs_sdet').text
             time = row.find('td', class_='bs_stag').text + ' ' + row.find('td', class_='bs_szeit').text
             courses.append(Course(id, course_name, time=time, kind=kind,
-                url=page_url))
+                url=page_url, bs_code=bscode))
     return courses
 
 def extract_fid(html):
@@ -44,6 +45,16 @@ def extract_fid(html):
         return None
     else:
         return fid_input[0].attrs['value']
+
+def extract_bscode(html):
+    """
+    Get the BS_code from the course landing page
+    """
+    bscode_input = BeautifulSoup(html).select('input[name="BS_Code"]')
+    if not bscode_input:
+        return None
+    else:
+        return bscode_input[0].attrs['value']
 
 def extract_price(html):
     """

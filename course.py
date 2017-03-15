@@ -2,13 +2,15 @@ from pickle import load, dump
 
 class Course(object):
 
-    def __init__(self, id, name, url=None, time=None, place=None, kind='buchen'):
+    def __init__(self, id, name, url=None, time=None, place=None, kind='buchen',
+            bs_code=None):
         self._id = id
         self._name = name
         self._url = url
         self._time = time
         self._place = place
         self._kind = kind
+        self._bs_code = bs_code
 
     def __str__(self):
         return "{id} {name}: {time}".format(id=self.id, name=self.name, time=self.time)
@@ -36,6 +38,10 @@ class Course(object):
     @property
     def kind(self):
         return self._kind
+
+    @property
+    def bs_code(self):
+        return self._bs_code
     
 class CourseManager(object):
 

@@ -8,7 +8,7 @@ Kursauswahl:
 [x] CLI zur Fuzzy-Auswahl der Kurse
 
 
-[ ] POST-Request an /cgi/anmeldung.fcgi senden, mit diesem Inhalt:
+[x] POST-Request an /cgi/anmeldung.fcgi senden, mit diesem Inhalt:
 
    POST-Headers
    -------------------------------------
@@ -29,8 +29,8 @@ Kursauswahl:
    -------------------------------------
    BS_Code=${bscode}&BS_Kursid_${kursid}=(buchen|Warteliste|Vormerkliste)
 
-[ ] input Tag mit name="fid" extrahieren
-[ ] POST-Request an /cgi/anmeldung.fcgi senden:
+[x] input Tag mit name="fid" extrahieren
+[x] POST-Request an /cgi/anmeldung.fcgi senden:
    POST-Headers
    -------------------------------------
    POST /cgi/anmeldung.fcgi HTTP/1.1
@@ -56,14 +56,15 @@ Kursauswahl:
    Bei Eintragung (nur für Uos-Studenten):
       fid=${fid}&pw_email=&pw_pwd_3681e81aa9fa4171bbfb397d3012b4235e95b79e72c3b77bfeb3ad2d=&sex=${M_or_F}&vorname=${Vorname}&name={Nachname}&strasse=${Addresse}&ort=${PLZ_Ort}&statusorig=Stud-UOS&matnr=${Matnr}&mitnr=&email=${email}&telefon=&iban=${IBAN}&bic=&kontoinh=nur+%C3%A4ndern%2C+falls+nicht+mit+Teilnehmer%2Fin+identisch&tnbed=1&tnbed2=1
 
-[ ] aus Response input-Element _formdata extrahieren und value speichern.
-[ ] POST-Request and /cgi/anmeldung.fcgi senden mit Inhalt:
+[x] aus Response input-Element _formdata extrahieren und value speichern.
+[x] aus Response Preis extrahieren und value speichern.
+[x] POST-Request and /cgi/anmeldung.fcgi senden mit Inhalt:
    POST-Headers
    -------------------------------------
    POST /cgi/anmeldung.fcgi HTTP/1.1
    Host: buchung.zfh.uni-osnabrueck.de
    Connection: keep-alive
-   Content-Length: 282
+   Content-Length: ${Content-Length}
    Pragma: no-cache
    Cache-Control: no-cache
    Origin: https://buchung.zfh.uni-osnabrueck.de
@@ -82,3 +83,5 @@ Kursauswahl:
    POST-Body
    -------------------------------------
    fid=${fid}&Phase=final&tnbed=1+&sex=${M_or_F}}&vorname=${vorname}&name=${Nachnahme}&strasse=${Addresse}&ort=${PLZ_Ort}&statusorig=Stud-UOS&matnr=${Matnr}&email=${email}&preis_anz=${Preis}+EUR&_formdata=${formdata}
+
+   !!! Wichtig: tnbed=1 hat ein Leerzeichen hinten dran

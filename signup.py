@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from difflib import SequenceMatcher
+from urllib.parse import parse_qs
 import sys
 import requests
 import configparser
@@ -15,7 +16,7 @@ def signup(course, post_url, user_data):
     session = requests.Session()
     # do first request to get secret form values
     post_headers = {
-            'Cache-Control': 'max-age=0',
+            'Cache-Control': 'no-cache',
             'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
@@ -28,10 +29,18 @@ def signup(course, post_url, user_data):
             }
     post_data = {
             'BS_Kursid_{}'.format(course.id): course.kind,
+            'BS_Code': course.bs_code
             }
-    response1 = session.post(post_url, headers=post_headers, data=post_data,
-            allow_redirects=False)
+
+    req1 = requests.Request('POST', post_url, headers=post_headers,
+            data=post_data).prepare()
+
+    print(req1.headers)
+    print(req1.body)
+
+    response1 = session.send(req1, allow_redirects=False)
     fid = extract_fid(response1.text)
+    print('fid is {}'.format(fid))
     
     post_headers = {
             'Host': 'buchung.zfh.uni-osnabrueck.de',
@@ -60,8 +69,9 @@ def signup(course, post_url, user_data):
                 'matnr': user_data['matnr'],
                 'email': user_data['email'],
                 'iban': user_data['iban'],
+                'telefon': '',
                 'kontoinh': 'nur+ändern,+falls+nicht+mit+Teilnehmer/in+identisch',
-                'tnbed': '1',
+                'tnbed': '1 ',
                 'tnbed2': '1'
                 }
     elif course.kind == 'Warteliste':
@@ -70,22 +80,37 @@ def signup(course, post_url, user_data):
                 'Email': user_data['email']
                 }
 
-    response2 = session.post(post_url, headers=post_headers, data=post_data,
-            allow_redirects=False)
+    req2 = requests.Request('POST', post_url, headers=post_headers,
+            data=post_data).prepare()
+    print(req2.headers)
+    print(req2.body)
+
+    response2 = session.send(req2, allow_redirects=False)
+
     price = extract_price(response2.text)
     formdata = extract_formdata(response2.text)
+    print('price is {}'.format(price))
+    print('_formdata is {}'.format(formdata))
     post_data.update({
         'Phase': 'final',
         'preis_anz': price,
         '_formdata': formdata
         })
+    # delete unused params -- seems to make no difference
+    # del post_data['tnbed2']
+    # del post_data['kontoinh']
+    # del post_data['iban']
 
     post_headers.update({ 'Referer':
         'https://buchung.zfh.uni-osnabrueck.de/cgi/anmeldung.fcgi' })
 
-    response3 = session.post(post_url, headers=post_headers, data=post_data,
-            allow_redirects=False)
-    import ipdb; ipdb.set_trace()
+    req3 = requests.Request('POST', post_url, headers=post_headers,
+            data=post_data).prepare()
+
+    print(req3.headers)
+    print(req3.body)
+    response3 = session.send(req3, allow_redirects=False)
+    print(response3.text)
 
 def filter_courses(courses, query=None, id=None, fuzzy=False, num_results=10):
 
