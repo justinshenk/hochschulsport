@@ -8,12 +8,14 @@ from course import Course
 import re
 import sys
 
+
 def course_links_early_ss17(html):
     soup = BeautifulSoup(html)
     a_elems = soup.select('dl.bs_menu > dd a')
-    links = map(lambda l: l.attrs['href'], a_elems) 
+    links = map(lambda l: l.attrs['href'], a_elems)
     names = map(lambda l: l.text, a_elems)
     return list(links), list(names)
+
 
 def course_filter_detail_early_ss17(html, page_url):
     """
@@ -26,18 +28,21 @@ def course_filter_detail_early_ss17(html, page_url):
     for row in rows:
         course_row = row.find('input')
         if not course_row or not course_row.attrs['value'] in ['Warteliste', 'buchen',
-                'Vormerkliste']:
+                                                               'Vormerkliste']:
             print('Skipping {}...'.format(name), file=sys.stderr)
             continue
         else:
             kind = course_row.attrs['value']
             bscode = extract_bscode(html)
-            id = int(re.match(r'BS_Kursid_(\d+)', course_row.attrs['name']).group(1))
+            id = int(re.match(r'BS_Kursid_(\d+)',
+                              course_row.attrs['name']).group(1))
             course_name = name + ' ' + row.find('td', class_='bs_sdet').text
-            time = row.find('td', class_='bs_stag').text + ' ' + row.find('td', class_='bs_szeit').text
+            time = row.find('td', class_='bs_stag').text + ' ' + \
+                row.find('td', class_='bs_szeit').text
             courses.append(Course(id, course_name, time=time, kind=kind,
-                url=page_url, bs_code=bscode))
+                                  url=page_url, bs_code=bscode))
     return courses
+
 
 def extract_fid(html):
     fid_input = BeautifulSoup(html).select('input[name="fid"]')
@@ -45,6 +50,7 @@ def extract_fid(html):
         return None
     else:
         return fid_input[0].attrs['value']
+
 
 def extract_bscode(html):
     """
@@ -56,6 +62,7 @@ def extract_bscode(html):
     else:
         return bscode_input[0].attrs['value']
 
+
 def extract_price(html):
     """
     Get the price from the confirmation (not the initial signup) page
@@ -66,6 +73,7 @@ def extract_price(html):
     else:
         return price_input[0].attrs['value']
 
+
 def extract_formdata(html):
     """
     Get the hidden _formdata value from the confirmation (not the initial signup) page
@@ -75,4 +83,3 @@ def extract_formdata(html):
         return None
     else:
         return formdata_input[0].attrs['value']
-    

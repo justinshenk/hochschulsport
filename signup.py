@@ -10,76 +10,77 @@ import configparser
 from course import CourseManager
 from filters import extract_fid, extract_price, extract_formdata
 
+
 def signup(course, post_url, user_data):
     if course.kind != 'buchen':
         raise RuntimeError('Currently, only booking is supported.')
     session = requests.Session()
     session.headers = {}
     post_headers = {
-            'Cache-Control': 'no-cache',
-            'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'DNT': '1',
-            'Referer': course.url,
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en,en-US;q=0.8,de;q=0.6',
-            }
+        'Cache-Control': 'no-cache',
+        'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'DNT': '1',
+        'Referer': course.url,
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en,en-US;q=0.8,de;q=0.6',
+    }
     post_data = {
-            'BS_Kursid_{}'.format(course.id): course.kind,
-            'BS_Code': course.bs_code
-            }
+        'BS_Kursid_{}'.format(course.id): course.kind,
+        'BS_Code': course.bs_code
+    }
 
     req1 = requests.Request('POST', post_url, headers=post_headers,
-            data=post_data).prepare()
+                            data=post_data).prepare()
     pretty_print_POST(req1)
 
     response1 = session.send(req1)
     fid = extract_fid(response1.text)
     print('fid is {}'.format(fid))
-    
+
     post_headers = {
-            'Host': 'buchung.zfh.uni-osnabrueck.de',
-            'Connection': 'keep-alive',
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache',
-            'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'DNT': '1',
-            'Referer': course.url,
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en,en-US;q=0.8,de;q=0.6',
-            }
+        'Host': 'buchung.zfh.uni-osnabrueck.de',
+        'Connection': 'keep-alive',
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache',
+        'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'DNT': '1',
+        'Referer': course.url,
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en,en-US;q=0.8,de;q=0.6',
+    }
     if course.kind == 'buchen':
         post_data = {
-                'fid': fid,
-                'sex': user_data['gender'],
-                'vorname': user_data['first_name'],
-                'name': user_data['last_name'],
-                'strasse': user_data['address'],
-                'ort': user_data['zipcode'] + ' ' + user_data['place'],
-                'statusorig': 'Stud-UOS',
-                'matnr': user_data['matnr'],
-                'email': user_data['email'],
-                'iban': user_data['iban'],
-                'telefon': '',
-                'kontoinh': 'nur+ändern,+falls+nicht+mit+Teilnehmer/in+identisch',
-                'tnbed': '1 ',
-                'tnbed2': '1'
-                }
+            'fid': fid,
+            'sex': user_data['gender'],
+            'vorname': user_data['first_name'],
+            'name': user_data['last_name'],
+            'strasse': user_data['address'],
+            'ort': user_data['zipcode'] + ' ' + user_data['place'],
+            'statusorig': 'Stud-UOS',
+            'matnr': user_data['matnr'],
+            'email': user_data['email'],
+            'iban': user_data['iban'],
+            'telefon': '',
+            'kontoinh': 'nur+ändern,+falls+nicht+mit+Teilnehmer/in+identisch',
+            'tnbed': '1 ',
+            'tnbed2': '1'
+        }
     elif course.kind == 'Warteliste':
         post_data = {
-                'fid': fid,
-                'Email': user_data['email']
-                }
+            'fid': fid,
+            'Email': user_data['email']
+        }
 
     req2 = requests.Request('POST', post_url, headers=post_headers,
-            data=post_data).prepare()
+                            data=post_data).prepare()
     pretty_print_POST(req2)
 
     response2 = session.send(req2)
@@ -92,14 +93,14 @@ def signup(course, post_url, user_data):
         'Phase': 'final',
         'preis_anz': price,
         '_formdata': formdata
-        })
+    })
     # NOTE: deleteing unused params seems to make no difference
 
-    post_headers.update({ 'Referer':
-        'https://buchung.zfh.uni-osnabrueck.de/cgi/anmeldung.fcgi' })
+    post_headers.update({'Referer':
+                         'https://buchung.zfh.uni-osnabrueck.de/cgi/anmeldung.fcgi'})
 
     req3 = requests.Request('POST', post_url, headers=post_headers,
-            data=post_data).prepare()
+                            data=post_data).prepare()
     pretty_print_POST(req3)
 
     response3 = session.send(req3)
@@ -133,19 +134,19 @@ def filter_courses(courses, query=None, id=None, fuzzy=False, num_results=10):
 def main():
     parser = ArgumentParser(description='Sign up for a course.')
     parser.add_argument('--course_name', type=str, required=False, default=None,
-            help='Name of the course')
+                        help='Name of the course')
     parser.add_argument('--course_id', type=int, required=False, default=None,
-            help='Id of the course')
-    parser.add_argument('--first_name', type=str, required=False, help=('Your'
-            'first name for registration.'))
-    parser.add_argument('--last_name', type=str, required=False, help=('Your'
-        'last name for registration.'))
-    parser.add_argument('--email', type=str, required=False, help=('Your'
-        '(university) email.'))
-    parser.add_argument('--mat_nr', type=int, required=False, help=('Your'
-        'matriculation number.'))
+                        help='Id of the course')
+    parser.add_argument('--first_name', type=str, required=False, help=('Your '
+                                                                        'first name for registration.'))
+    parser.add_argument('--last_name', type=str, required=False, help=('Your '
+                                                                       'last name for registration.'))
+    parser.add_argument('--email', type=str, required=False, help=('Your '
+                                                                   '(university) email.'))
+    parser.add_argument('--mat_nr', type=int, required=False, help=('Your '
+                                                                    'matriculation number.'))
     parser.add_argument('--database', type=str, default='courses.pickle',
-            required=False, help='File to read courses from.')
+                        required=False, help='File to read courses from.')
     args = parser.parse_args()
 
     config = configparser.ConfigParser()
@@ -156,7 +157,7 @@ def main():
         exit(1)
     else:
         courses = list(filter_courses(CourseManager.load_all(args.database),
-            query=args.course_name, id=args.course_id))
+                                      query=args.course_name, id=args.course_id))
         if len(courses) == 0:
             print('Error. No courses found.')
             sys.exit(1)
