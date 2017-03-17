@@ -14,7 +14,7 @@ def signup(course, post_url, user_data):
     if course.kind != 'buchen':
         raise RuntimeError('Currently, only booking is supported.')
     session = requests.Session()
-    # do first request to get secret form values
+    session.headers = {}
     post_headers = {
             'Cache-Control': 'no-cache',
             'Origin': 'https://buchung.zfh.uni-osnabrueck.de',
@@ -34,11 +34,9 @@ def signup(course, post_url, user_data):
 
     req1 = requests.Request('POST', post_url, headers=post_headers,
             data=post_data).prepare()
+    pretty_print_POST(req1)
 
-    print(req1.headers)
-    print(req1.body)
-
-    response1 = session.send(req1, allow_redirects=False)
+    response1 = session.send(req1)
     fid = extract_fid(response1.text)
     print('fid is {}'.format(fid))
     
@@ -82,10 +80,9 @@ def signup(course, post_url, user_data):
 
     req2 = requests.Request('POST', post_url, headers=post_headers,
             data=post_data).prepare()
-    print(req2.headers)
-    print(req2.body)
+    pretty_print_POST(req2)
 
-    response2 = session.send(req2, allow_redirects=False)
+    response2 = session.send(req2)
 
     price = extract_price(response2.text)
     formdata = extract_formdata(response2.text)
@@ -96,21 +93,19 @@ def signup(course, post_url, user_data):
         'preis_anz': price,
         '_formdata': formdata
         })
-    # delete unused params -- seems to make no difference
-    # del post_data['tnbed2']
-    # del post_data['kontoinh']
-    # del post_data['iban']
+    # NOTE: deleteing unused params seems to make no difference
 
     post_headers.update({ 'Referer':
         'https://buchung.zfh.uni-osnabrueck.de/cgi/anmeldung.fcgi' })
 
     req3 = requests.Request('POST', post_url, headers=post_headers,
             data=post_data).prepare()
+    pretty_print_POST(req3)
 
-    print(req3.headers)
-    print(req3.body)
-    response3 = session.send(req3, allow_redirects=False)
+    response3 = session.send(req3)
     print(response3.text)
+    session.close()
+
 
 def filter_courses(courses, query=None, id=None, fuzzy=False, num_results=10):
 
@@ -160,19 +155,26 @@ def main():
         print('Error. Either name or id must be given.', file=sys.stderr)
         exit(1)
     else:
-        courses = filter_courses(CourseManager.load_all(args.database),
-                query=args.course_name, id=args.course_id)
-        for i, c in enumerate(courses):
-            print('{:4}: {}'.format(i, c.name))
-        while True:
-            try:
-                num = int(input('Enter number for signup: '))
-            except ValueError:
-                continue
-            if 0 <= num < len(courses):
-                break
-        print('Signing up for {}'.format(courses[num]))
-        signup(courses[num], config['global']['post_url'], config['user'])
+        courses = list(filter_courses(CourseManager.load_all(args.database),
+            query=args.course_name, id=args.course_id))
+        if len(courses) == 0:
+            print('Error. No courses found.')
+            sys.exit(1)
+        elif len(courses) == 1:
+            course = courses[0]
+        else:
+            for i, c in enumerate(courses):
+                print('{:4}: {}'.format(i, c.name))
+            while True:
+                try:
+                    num = int(input('Enter number for signup: '))
+                    course = courses[0]
+                except ValueError:
+                    continue
+                if 0 <= num < len(courses):
+                    break
+            print('Signing up for {}'.format(courses[num]))
+        signup(course, config['global']['post_url'], config['user'])
 
 if __name__ == "__main__":
     main()
