@@ -1,9 +1,15 @@
 from pickle import load, dump
 
-class Course(object):
 
-    def __init__(self, id, name, url=None, time=None, place=None, kind='buchen',
-            bs_code=None):
+class Course(object):
+    def __init__(self,
+                 id,
+                 name,
+                 url=None,
+                 time=None,
+                 place=None,
+                 kind='buchen',
+                 bs_code=None):
         self._id = id
         self._name = name
         self._url = url
@@ -13,7 +19,8 @@ class Course(object):
         self._bs_code = bs_code
 
     def __str__(self):
-        return "{id} {name}: {time}".format(id=self.id, name=self.name, time=self.time)
+        return "{id} {name}: {time}".format(
+            id=self.id, name=self.name, time=self.time)
 
     @property
     def id(self):
@@ -30,7 +37,7 @@ class Course(object):
     @property
     def time(self):
         return self._time
-    
+
     @property
     def place(self):
         return self._place
@@ -42,9 +49,9 @@ class Course(object):
     @property
     def bs_code(self):
         return self._bs_code
-    
-class CourseManager(object):
 
+
+class CourseManager(object):
     @classmethod
     def load_all(cls, fname):
         try:

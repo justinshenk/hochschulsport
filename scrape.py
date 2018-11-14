@@ -18,10 +18,13 @@ from course import Course, CourseManager
 
 
 class Scraper(object):
-
     """Class to scrape yo ass."""
 
-    def __init__(self, course_list_url, course_link_filter, course_filter, fname='courses.pickle'):
+    def __init__(self,
+                 course_list_url,
+                 course_link_filter,
+                 course_filter,
+                 fname='courses.pickle'):
         """Create a new scraper
 
         :course_list_url: The URL wherein all current courses are listed
@@ -47,9 +50,10 @@ class Scraper(object):
     @property
     def courses(self):
         if not self._courses:
-            print(('Courses not loaded, '
-                   'attempting to read from {}...').format(self._fname),
-                  file=sys.stderr)
+            print(
+                ('Courses not loaded, '
+                 'attempting to read from {}...').format(self._fname),
+                file=sys.stderr)
             if not exists(self._fname):
                 print('File not found, downloading...', file=sys.stderr)
                 self.update_courses()
@@ -77,8 +81,8 @@ class Scraper(object):
         session.mount(self._course_list_url, retry_adapter)
         html = session.get(self._course_list_url).text
         links, names = self._course_link_filter(html)
-        links = list(map(lambda l: parse.urljoin(
-            self._course_list_url, l), links))
+        links = list(
+            map(lambda l: parse.urljoin(self._course_list_url, l), links))
 
         session = FuturesSession()
         # we assume the individual courses have the same prefix as the course
@@ -91,9 +95,12 @@ class Scraper(object):
             print('Processing {} ({} of {})'.format(l, i + 1, len(links)))
             futures.append((l, session.get(l, timeout=timeout)))
 
-        self._courses = [course for lst in
-                         (self._course_filter(f.result().text, page_url=l) for l, f in futures if not
-                          f.exception()) for course in lst]
+        self._courses = [
+            course
+            for lst in (self._course_filter(f.result().text, page_url=l)
+                        for l, f in futures if not f.exception())
+            for course in lst
+        ]
 
 
 def validate_args(args, config):
@@ -109,29 +116,59 @@ def validate_args(args, config):
             try:
                 args.index_url = config['global']['index_url']
             except KeyError:
-                return (False, 'Error. Index url for update neither in params nor configuration file.')
+                return (
+                    False,
+                    'Error. Index url for update neither in params nor configuration file.'
+                )
     return (True, 'Arguments OK.')
 
 
 def main():
-    parser = argparse.ArgumentParser(description=('Scrape the Hochschulsport'
-                                                  'website. The url is read from the zfh.conf or specified by'
-                                                  'parameter.'))
-    parser.add_argument('--index_url', type=str, required=False, default=None,
-                        help='The web url listing all available courses.')
-    parser.add_argument('--max_retries', type=int, choices=range(1, 50),
-                        metavar='[1-50]',
-                        default=5, required=False,
-                        help='Retries for obtaining individual courses')
-    parser.add_argument('--timeout', type=int, choices=range(5, 50),
-                        metavar='[5-50]',
-                        default=20, required=False, help='Timeout for requests.')
-    parser.add_argument('--database', type=str, default='courses.pickle',
-                        required=False, help='File to store courses in.')
-    parser.add_argument('--update', action='store_true', default=False,
-                        required=False, help='Update the database from web')
-    parser.add_argument('--list', action='store_true', default=False,
-                        required=False, help='Print list of courses')
+    parser = argparse.ArgumentParser(
+        description=(
+            'Scrape the Hochschulsport'
+            'website. The url is read from the zfh.conf or specified by'
+            'parameter.'))
+    parser.add_argument(
+        '--index_url',
+        type=str,
+        required=False,
+        default=None,
+        help='The web url listing all available courses.')
+    parser.add_argument(
+        '--max_retries',
+        type=int,
+        choices=range(1, 50),
+        metavar='[1-50]',
+        default=5,
+        required=False,
+        help='Retries for obtaining individual courses')
+    parser.add_argument(
+        '--timeout',
+        type=int,
+        choices=range(5, 50),
+        metavar='[5-50]',
+        default=20,
+        required=False,
+        help='Timeout for requests.')
+    parser.add_argument(
+        '--database',
+        type=str,
+        default='courses.pickle',
+        required=False,
+        help='File to store courses in.')
+    parser.add_argument(
+        '--update',
+        action='store_true',
+        default=False,
+        required=False,
+        help='Update the database from web')
+    parser.add_argument(
+        '--list',
+        action='store_true',
+        default=False,
+        required=False,
+        help='Print list of courses')
     args = parser.parse_args()
 
     config = configparser.ConfigParser()
@@ -144,8 +181,11 @@ def main():
 
     # in these cases, we need the url
     if args.update or not os.path.exists(args.database):
-        s = Scraper(args.index_url, course_links_early_ss17,
-                    course_filter_detail_early_ss17, fname=args.database)
+        s = Scraper(
+            args.index_url,
+            course_links_early_ss17,
+            course_filter_detail_early_ss17,
+            fname=args.database)
         s.update_courses(max_retries=args.max_retries, timeout=args.timeout)
         courses = s.courses
         try:
@@ -159,6 +199,7 @@ def main():
     if args.list:
         for c in courses:
             print(c)
+
 
 if __name__ == "__main__":
     main()

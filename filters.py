@@ -27,20 +27,28 @@ def course_filter_detail_early_ss17(html, page_url):
     courses = []
     for row in rows:
         course_row = row.find('input')
-        if not course_row or not course_row.attrs['value'] in ['Warteliste', 'buchen',
-                                                               'Vormerkliste']:
+        if not course_row or not course_row.attrs['value'] in [
+                'Warteliste', 'buchen', 'Vormerkliste'
+        ]:
             print('Skipping {}...'.format(name), file=sys.stderr)
             continue
         else:
             kind = course_row.attrs['value']
             bscode = extract_bscode(html)
-            id = int(re.match(r'BS_Kursid_(\d+)',
-                              course_row.attrs['name']).group(1))
+            id = int(
+                re.match(r'BS_Kursid_(\d+)',
+                         course_row.attrs['name']).group(1))
             course_name = name + ' ' + row.find('td', class_='bs_sdet').text
             time = row.find('td', class_='bs_stag').text + ' ' + \
                 row.find('td', class_='bs_szeit').text
-            courses.append(Course(id, course_name, time=time, kind=kind,
-                                  url=page_url, bs_code=bscode))
+            courses.append(
+                Course(
+                    id,
+                    course_name,
+                    time=time,
+                    kind=kind,
+                    url=page_url,
+                    bs_code=bscode))
     return courses
 
 
